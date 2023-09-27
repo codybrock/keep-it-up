@@ -1,0 +1,172 @@
+[gd_scene load_steps=11 format=3 uid="uid://g0niekngcu22"]
+
+[ext_resource type="Script" path="res://player.gd" id="1_bidan"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/state_chart.gd" id="1_xx1le"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/compound_state.gd" id="3_qv4sv"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/atomic_state.gd" id="4_yssww"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/transition.gd" id="5_i8sh6"]
+[ext_resource type="Texture2D" uid="uid://becedv60qndkg" path="res://Art/wally.png" id="6_t0h4d"]
+[ext_resource type="PackedScene" uid="uid://bcwkugn6v3oy7" path="res://addons/godot_state_charts/utilities/state_chart_debugger.tscn" id="7_8vr6o"]
+[ext_resource type="PackedScene" uid="uid://bg43vh2fsliim" path="res://debug/debug_panel.tscn" id="8_7jubd"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lt5fp"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_t0h4d")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_sweem"]
+radius = 7.0
+height = 28.0
+
+[node name="Player" type="CharacterBody2D"]
+floor_snap_length = 10.0
+script = ExtResource("1_bidan")
+speed = 400.0
+friction = 0.1
+acceleration = 0.05
+
+[node name="StateChart" type="Node" parent="."]
+script = ExtResource("1_xx1le")
+
+[node name="Movement" type="Node" parent="StateChart"]
+script = ExtResource("3_qv4sv")
+initial_state = NodePath("Grounded")
+
+[node name="Grounded" type="Node" parent="StateChart/Movement"]
+script = ExtResource("3_qv4sv")
+initial_state = NodePath("Idle")
+
+[node name="on_jump" type="Node" parent="StateChart/Movement/Grounded"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Airborne/Jump")
+event = &"jump"
+
+[node name="on_airborne" type="Node" parent="StateChart/Movement/Grounded"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Airborne")
+event = &"airborne"
+
+[node name="Idle" type="Node" parent="StateChart/Movement/Grounded"]
+script = ExtResource("4_yssww")
+
+[node name="on_side" type="Node" parent="StateChart/Movement/Grounded/Idle"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Run")
+event = &"move"
+
+[node name="Run" type="Node" parent="StateChart/Movement/Grounded"]
+script = ExtResource("4_yssww")
+
+[node name="on_stop" type="Node" parent="StateChart/Movement/Grounded/Run"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Idle")
+event = &"stop"
+
+[node name="Airborne" type="Node" parent="StateChart/Movement"]
+script = ExtResource("3_qv4sv")
+initial_state = NodePath("CoyoteTime")
+
+[node name="on_ground" type="Node" parent="StateChart/Movement/Airborne"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Grounded")
+event = &"grounded"
+
+[node name="CoyoteTime" type="Node" parent="StateChart/Movement/Airborne"]
+script = ExtResource("4_yssww")
+
+[node name="on_jump" type="Node" parent="StateChart/Movement/Airborne/CoyoteTime"]
+editor_description = "If the player jumps during coyote time, they jump successfully just as if they were grounded."
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Jump")
+event = &"jump"
+
+[node name="on_fall" type="Node" parent="StateChart/Movement/Airborne/CoyoteTime"]
+editor_description = "If the player doesn't jump within the delay, their coyote time is up and they start falling."
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Falling")
+delay_seconds = 0.05
+
+[node name="Jump" type="Node" parent="StateChart/Movement/Airborne"]
+script = ExtResource("4_yssww")
+
+[node name="on_clip" type="Node" parent="StateChart/Movement/Airborne/Jump"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../ClippedJump")
+event = &"clipped"
+
+[node name="on_fall" type="Node" parent="StateChart/Movement/Airborne/Jump"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Falling")
+event = &"falling"
+
+[node name="Falling" type="Node" parent="StateChart/Movement/Airborne"]
+script = ExtResource("4_yssww")
+
+[node name="ClippedJump" type="Node" parent="StateChart/Movement/Airborne"]
+script = ExtResource("4_yssww")
+
+[node name="on_fall" type="Node" parent="StateChart/Movement/Airborne/ClippedJump"]
+script = ExtResource("5_i8sh6")
+to = NodePath("../../Falling")
+event = &"falling"
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_lt5fp")
+animation = &"idle"
+offset = Vector2(0, -2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_sweem")
+
+[node name="DebugLayer" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="StateChartDebugger" parent="DebugLayer" instance=ExtResource("7_8vr6o")]
+visible = false
+offset_left = 411.0
+offset_top = 33.0
+offset_right = -9.0
+offset_bottom = -25.0
+initial_node_to_watch = NodePath("../../StateChart")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="DebugPanel" parent="CanvasLayer" instance=ExtResource("8_7jubd")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 12.0
+offset_right = -10.0
+offset_bottom = 120.0
+grow_horizontal = 0
+
+[node name="Title" parent="CanvasLayer/DebugPanel/MarginContainer/VBoxContainer" index="0"]
+text = "Player Debugger"
+
+[node name="Gravity" parent="CanvasLayer/DebugPanel/MarginContainer/VBoxContainer" index="1"]
+Value = "farts"
+
+[connection signal="state_physics_processing" from="StateChart/Movement/Grounded" to="." method="_on_grounded_state_physics_processing"]
+[connection signal="state_entered" from="StateChart/Movement/Grounded/Idle" to="." method="_on_idle_state_entered"]
+[connection signal="state_entered" from="StateChart/Movement/Grounded/Run" to="." method="_on_run_state_entered"]
+[connection signal="state_entered" from="StateChart/Movement/Airborne/CoyoteTime" to="." method="_on_coyote_time_state_entered"]
+[connection signal="state_physics_processing" from="StateChart/Movement/Airborne/CoyoteTime" to="." method="_on_grounded_state_physics_processing"]
+[connection signal="state_entered" from="StateChart/Movement/Airborne/Jump" to="." method="_on_jump_state_entered"]
+[connection signal="state_physics_processing" from="StateChart/Movement/Airborne/Jump" to="." method="_on_jump_state_physics_processing"]
+[connection signal="state_entered" from="StateChart/Movement/Airborne/Falling" to="." method="_on_falling_state_entered"]
+[connection signal="state_physics_processing" from="StateChart/Movement/Airborne/Falling" to="." method="_on_falling_state_physics_processing"]
+[connection signal="state_entered" from="StateChart/Movement/Airborne/ClippedJump" to="." method="_on_clipped_jump_state_entered"]
+[connection signal="state_physics_processing" from="StateChart/Movement/Airborne/ClippedJump" to="." method="_on_clipped_jump_state_physics_processing"]
+
+[editable path="CanvasLayer/DebugPanel"]

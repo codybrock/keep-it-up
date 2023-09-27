@@ -1,0 +1,16 @@
+CanvasLayer
+Control
+PanelContainer
+Label
+HBoxContainer
+VBoxContainer
+MarginContainer
+Panel
+Sprite2D
+AnimationPlayer
+CollisionShape2D
+CharacterBody2D
+AnimationTree
+AnimatedSprite2D
+StateChart
+TileMap

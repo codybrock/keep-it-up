@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://bw13h3uc6h3o4"]
+
+[ext_resource type="Script" path="res://balloon.gd" id="1_gudmp"]
+[ext_resource type="Texture2D" uid="uid://caj1vstjgjdmy" path="res://Art/balloon.png" id="1_m7hbq"]
+[ext_resource type="PackedScene" uid="uid://bg43vh2fsliim" path="res://debug/debug_panel.tscn" id="3_qrjvy"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_7x0o3"]
+radius = 9.0
+
+[node name="Balloon" type="CharacterBody2D"]
+position = Vector2(213, 226)
+script = ExtResource("1_gudmp")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+root_node = NodePath("../CollisionShape2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.890196, 0.223529, 0.235294, 1)
+texture = ExtResource("1_m7hbq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_7x0o3")
+
+[node name="DebugLayer" type="CanvasLayer" parent="."]
+
+[node name="DebugPanel" parent="DebugLayer" instance=ExtResource("3_qrjvy")]
+offset_left = 15.0
+offset_top = 19.0
+offset_right = 163.0
+offset_bottom = 127.0
